@@ -11,15 +11,15 @@ C_SRC_OUTPUT ?= $(CURDIR)/../priv/$(PROJECT).so
 # System type and C compiler/flags.
 
 ifeq ($(CROSSCOMPILE),)
-ERTS_INCLUDE_DIR ?= $(shell erl -noshell -s init stop -eval "io:format(\"~s/erts-~s/include/\", [code:root_dir(), erlang:system_info(version)]).")
-ERLANG_ARCH ?= $(shell erl -noshell -s init stop -eval "io:format(\"~B\", [erlang:system_info({wordsize,external}) * 8]).")
+ERTS_INCLUDE_DIR ?= $(shell erl -noshell -eval "io:format(\"~s/erts-~s/include/\", [code:root_dir(), erlang:system_info(version)])." -s erlang halt)
+ERLANG_ARCH ?= $(shell erl -noshell -eval "io:format(\"~B\", [erlang:system_info({wordsize,external}) * 8])." -s erlang halt)
 
 UNAME_SYS := $(shell uname -s)
 ifeq ($(UNAME_SYS), Darwin)
 	CC ?= cc
-	CFLAGS ?= -O3 -std=c99 -arch x86_64 -finline-functions -Wall -Wmissing-prototypes
-	CXXFLAGS ?= -O3 -arch x86_64 -finline-functions -Wall
-	LDFLAGS ?= -arch x86_64 -flat_namespace -undefined suppress
+	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
+	CXXFLAGS ?= -O3 -finline-functions -Wall
+	LDFLAGS ?= -flat_namespace -undefined suppress
 else ifeq ($(UNAME_SYS), FreeBSD)
 	CC ?= cc
 	CFLAGS ?= -O3 -std=c99 -finline-functions -Wall -Wmissing-prototypes
@@ -37,6 +37,10 @@ UNAME_ARCH := $(shell uname -m)
 ifeq ($(UNAME_ARCH), x86_64)
 	PROCKET_CFLAGS += -m$(ERLANG_ARCH)
 	CFLAGS += -m$(ERLANG_ARCH)
+else ifeq ($(UNAME_ARCH), arm64)
+	PROCKET_CFLAGS += -m$(ERLANG_ARCH)
+	CFLAGS += -m$(ERLANG_ARCH)
+	LDFLAGS += -undefined dynamic_lookup
 else ifeq ($(UNAME_ARCH), i686)
 	PROCKET_CFLAGS += -m$(ERLANG_ARCH)
 	CFLAGS += -m$(ERLANG_ARCH)

@@ -1,43 +1,47 @@
-%% Copyright (c) 2011-2015, Michael Santos <michael.santos@gmail.com>
-%% All rights reserved.
-%%
-%% Redistribution and use in source and binary forms, with or without
-%% modification, are permitted provided that the following conditions
-%% are met:
-%%
-%% Redistributions of source code must retain the above copyright
-%% notice, this list of conditions and the following disclaimer.
-%%
-%% Redistributions in binary form must reproduce the above copyright
-%% notice, this list of conditions and the following disclaimer in the
-%% documentation and/or other materials provided with the distribution.
-%%
-%% Neither the name of the author nor the names of its contributors
-%% may be used to endorse or promote products derived from this software
-%% without specific prior written permission.
-%%
-%% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-%% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-%% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-%% FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-%% COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-%% INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-%% BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-%% LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-%% CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-%% LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
-%% ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-%% POSSIBILITY OF SUCH DAMAGE.
+%%% @copyright 2011-2023 Michael Santos <michael.santos@gmail.com>
+%%% All rights reserved.
+%%%
+%%% Redistribution and use in source and binary forms, with or without
+%%% modification, are permitted provided that the following conditions
+%%% are met:
+%%%
+%%% 1. Redistributions of source code must retain the above copyright notice,
+%%% this list of conditions and the following disclaimer.
+%%%
+%%% 2. Redistributions in binary form must reproduce the above copyright
+%%% notice, this list of conditions and the following disclaimer in the
+%%% documentation and/or other materials provided with the distribution.
+%%%
+%%% 3. Neither the name of the copyright holder nor the names of its
+%%% contributors may be used to endorse or promote products derived from
+%%% this software without specific prior written permission.
+%%%
+%%% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+%%% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+%%% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+%%% A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+%%% HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+%%% SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+%%% TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+%%% PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+%%% LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+%%% NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+%%% SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -module(procket_ioctl).
 
 -export([
-        in/0, out/0, void/0,
-        in/1, out/1, void/1,
-        ioc/4,
-        io/2, ior/3,
-        iow/3, iowr/3
-    ]).
-
+    in/0,
+    out/0,
+    void/0,
+    in/1,
+    out/1,
+    void/1,
+    ioc/4,
+    io/2,
+    ior/3,
+    iow/3,
+    iowr/3
+]).
 
 %%
 %% Calculate the values of the ioctl request macros at runtime.
@@ -98,31 +102,35 @@ void(linux) -> 0.
 
 -define(IOCPARM_MASK, 16#1fff).
 
-ioc(Inout,Group,Num,Len) ->
-    Size = case os() of
-        bsd -> Len band ?IOCPARM_MASK;
-        linux -> Len
-    end,
+ioc(Inout, Group, Num, Len) ->
+    Size =
+        case os() of
+            bsd -> Len band ?IOCPARM_MASK;
+            linux -> Len
+        end,
     Inout bor (Size bsl 16) bor (Group bsl 8) bor Num.
 
-io(Type,NR) ->
+io(Type, NR) ->
     ioc(void(), Type, NR, 0).
 
-ior(Type,NR,Size) ->
+ior(Type, NR, Size) ->
     ioc(out(), Type, NR, Size).
 
-iow(Type,NR,Size) ->
+iow(Type, NR, Size) ->
     ioc(in(), Type, NR, Size).
 
-iowr(Type,NR,Size) ->
+iowr(Type, NR, Size) ->
     ioc(in() bor out(), Type, NR, Size).
-
 
 os() ->
     case os:type() of
-        {unix, linux} -> linux;
-        {unix,BSD} when BSD == darwin;
+        {unix, linux} ->
+            linux;
+        {unix, BSD} when
+            BSD == darwin;
             BSD == openbsd;
             BSD == netbsd;
-            BSD == freebsd -> bsd
+            BSD == freebsd
+        ->
+            bsd
     end.
